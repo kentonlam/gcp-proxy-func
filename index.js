@@ -11,11 +11,14 @@ const proxyInstance = getProxy();
 const app = express();
 
 app.use((req, res, next) => {
-	res.setHeader('access-control-allow-origin', req.headers['origin']);
-	res.setHeader('access-control-allow-methods', config.allowMethods);
+	const origin = req.get('origin');
+	if (origin) {
+		res.setHeader('access-control-allow-origin', origin);
+		res.setHeader('access-control-allow-methods', config.allowMethods);
+	}
 
 	// @ts-ignore
-	if (config.whitelistDomains && !config.whitelistDomains.includes(req.get('origin'))) {
+	if (config.whitelistDomains && !config.whitelistDomains.includes(origin)) {
 		res.status(403).send('"origin domain not whitelisted"');
 	} else {
 		next();
