@@ -9,6 +9,19 @@ const queryString = require('querystring');
 const proxyInstance = getProxy();
 
 const app = express();
+
+app.use((req, res, next) => {
+	res.setHeader('access-control-allow-origin', req.headers['origin']);
+	res.setHeader('access-control-allow-methods', config.allowMethods);
+
+	// @ts-ignore
+	if (config.whitelistDomains && !config.whitelistDomains.includes(req.get('origin'))) {
+		res.status(403).send('"origin domain not whitelisted"');
+	} else {
+		next();
+	}
+});
+
 app.use('/', proxyInstance);
 
 // Optional: Support special POST bodies - requires restreaming (see below)
