@@ -14,15 +14,25 @@ app.use((req, res, next) => {
 	const origin = req.get('origin');
 	if (origin) {
 		res.setHeader('access-control-allow-origin', origin);
-		res.setHeader('access-control-allow-methods', config.allowMethods);
+		res.setHeader('access-control-allow-methods', config.whitelistMethods.join(', '));
 	}
 
 	// @ts-ignore
 	if (config.whitelistDomains && !config.whitelistDomains.includes(origin)) {
+		console.warn("Refusing request from origin: " + origin);
 		res.status(403).send('"origin domain not whitelisted"');
-	} else {
-		next();
+		return;
 	}
+
+	// @ts-ignore
+	if (config.whitelistMethods && !config.whitelistMethods.includes(req.method)) {
+		console.warn("Refusing request with method: " + req.method);
+		res.status(403).send('"method not allowed"');
+		return;
+	}
+
+	console.log("Proxying request to: " + req.originalUrl);
+	next();
 });
 
 app.use('/', proxyInstance);
